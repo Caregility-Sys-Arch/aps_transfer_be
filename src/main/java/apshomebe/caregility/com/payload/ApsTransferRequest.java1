@@ -1,0 +1,59 @@
+package apshomebe.caregility.com.payload;
+
+public class ApsTransferRequest {
+
+	private String processRequestId;
+	private String processRequestType;
+	private String command;
+	private ApsTransferParam params;
+	private String socketId;
+	private String userSessionId;
+
+	public String getSocketId() {
+		return socketId;
+	}
+
+	public void setSocketId(String socketId) {
+		this.socketId = socketId;
+	}
+
+	public String getUserSessionId() {
+		return userSessionId;
+	}
+
+	public void setUserSessionId(String userSessionId) {
+		this.userSessionId = userSessionId;
+	}
+
+	public String getProcessRequestId() {
+		return processRequestId;
+	}
+
+	public void setProcessRequestId(String processRequestId) {
+		this.processRequestId = processRequestId;
+	}
+
+	public String getProcessRequestType() {
+		return processRequestType;
+	}
+
+	public void setProcessRequestType(String processRequestType) {
+		this.processRequestType = processRequestType;
+	}
+
+	public String getCommand() {
+		return command;
+	}
+
+	public void setCommand(String command) {
+		this.command = command;
+	}
+
+	public ApsTransferParam getParams() {
+		return params;
+	}
+
+	public void setParams(ApsTransferParam params) {
+		this.params = params;
+	}
+}
