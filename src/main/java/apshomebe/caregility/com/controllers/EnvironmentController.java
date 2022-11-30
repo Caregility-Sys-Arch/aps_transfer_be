@@ -1,13 +1,15 @@
 package apshomebe.caregility.com.controllers;
 
-import apshomebe.caregility.com.models.ApsTransfer;
+import apshomebe.caregility.com.exception.NoDataFoundException;
 import apshomebe.caregility.com.models.Environment;
 import apshomebe.caregility.com.models.EnvironmentMapping;
 import apshomebe.caregility.com.payload.ApsTransferRequest;
 import apshomebe.caregility.com.payload.ChannelRequest;
 import apshomebe.caregility.com.payload.EnvironmentResList;
-import apshomebe.caregility.com.payload.UserResponse;
+import apshomebe.caregility.com.payload.ListResponse;
 import apshomebe.caregility.com.service.EnvironmentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,73 +18,81 @@ import java.sql.SQLException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/observations")
-public class EnvironmentController
-{
+@RequestMapping("/apshome")
+public class EnvironmentController {
+    private static final Logger logger = LoggerFactory.getLogger(EnvironmentController.class);
     @Autowired
 
     EnvironmentService environmentService;
 
 
-    @GetMapping("/")
+    @GetMapping("/environment")
     public ResponseEntity<List<EnvironmentResList>> getAllEnv() {
         return ResponseEntity.ok(environmentService.getAllEnvironment());
     }
 
-    @PostMapping("/")
-    public void save(@RequestBody Environment env) {
-        environmentService.saveEnvironment(env);
+//    @PostMapping("/")
+//    public void save(@RequestBody Environment env) {
+//        environmentService.saveEnvironment(env);
+//
+//    }
 
-    }
+//    @GetMapping("/mapping")
+//    public ResponseEntity<List<EnvironmentMapping>> getAllEnvMapping() {
+//        return ResponseEntity.ok(environmentService.getAllMappings());
+//    }
 
-    @GetMapping("/mapping")
-    public ResponseEntity<List<EnvironmentMapping>> getAllEnvMapping() {
-        return ResponseEntity.ok(environmentService.getAllMappings());
-    }
-
-    @PostMapping("/mapping")
-    public void saveMapping(@RequestBody EnvironmentMapping envmap) {
-        environmentService.saveEnvironmentMappings(envmap);
-
-    }
+//    @PostMapping("/mapping")
+//    public void saveMapping(@RequestBody EnvironmentMapping envmap) {
+//        environmentService.saveEnvironmentMappings(envmap);
+//
+//    }
 
     @GetMapping("/channel")
-    public List<UserResponse> getChannelList(@RequestBody ChannelRequest environment) throws SQLException {
-        return environmentService.getChannelList(environment);
+    public ResponseEntity<List<ListResponse>> getChannelList(@RequestParam(required = false) String envId, @RequestParam(required = false) String userEmail) throws SQLException {
+        logger.info("inside the getChannelList() of controller layer ");
+        List<ListResponse> res = environmentService.getChannelList(envId, userEmail);
+        logger.info("exiting from the getChannelList() of controller layer ");
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/customers")
-    public List<UserResponse> getCustomersList(@RequestBody ChannelRequest environment,@RequestParam(required = false) String channelId) throws SQLException {
-        return environmentService.getChannelCustomersList(environment,channelId);
+    public ResponseEntity<List<ListResponse>> getCustomersList(@RequestParam(required = false) String envId, @RequestParam(required = false) String channelId) throws SQLException {
+        logger.info("inside the getCustomersList() of controller layer ");
+        List<ListResponse> res = environmentService.getChannelCustomersList(envId, channelId);
+        logger.info("exiting from the getCustomersList() of controller layer ");
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/facilities")
-    public List<UserResponse> getFacilityList(@RequestBody ChannelRequest environment,@RequestParam(required = false) String customerId) throws SQLException {
-        return environmentService.getFacilitiesList(environment,customerId);
+    public ResponseEntity<List<ListResponse>> getFacilityList(@RequestParam(required = false) String envId, @RequestParam(required = false) String customerId) throws SQLException {
+        logger.info("inside the getCustomersList() of controller layer ");
+        List<ListResponse> res = environmentService.getFacilitiesList(envId, customerId);
+        logger.info("exiting from the getFacilityList() of controller layer ");
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/units")
-    public List<UserResponse> getUnitList(@RequestBody ChannelRequest environment,@RequestParam(required = false) String facilityId) throws SQLException {
-        return environmentService.getUnitList(environment,facilityId);
+    public ResponseEntity<List<ListResponse>> getUnitList(@RequestParam(required = false) String envId, @RequestParam(required = false) String facilityId) throws SQLException {
+        logger.info("inside the getCustomersList() of controller layer ");
+        List<ListResponse> res = environmentService.getUnitList(envId, facilityId);
+        logger.info("exiting from the getUnitList() of controller layer ");
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping("/endpoints")
-    public List<UserResponse> getEndpointList(@RequestBody ChannelRequest environment ,@RequestParam(required = false) String unitId) throws SQLException {
-        return environmentService.getEndpointsList(environment,unitId);
+    public ResponseEntity<List<ListResponse>> getEndpointList(@RequestParam(required = false) String envId, @RequestParam(required = false) String unitId) throws SQLException {
+        logger.info("inside the getCustomersList() of controller layer ");
+        List<ListResponse> res = environmentService.getEndpointsList(envId, unitId);
+        logger.info("exiting from the getEndpointList() of controller layer ");
+        return ResponseEntity.ok(res);
     }
 
 
     @PostMapping("/aps/transfer")
-    public String transferAps(@RequestBody ApsTransferRequest transferReq)
-    {
-     return environmentService.transfer(transferReq);
+    public String transferAps(@RequestBody ApsTransferRequest transferReq) {
+        logger.info("inside the getCustomersList() of controller layer ");
+        return environmentService.transfer(transferReq);
     }
-
-//    @PostMapping("/aps/transfer/update/status/{fromMachineName}/{socketId}/{status}")
-//    public boolean
-//    transferAps(@PathVariable  String fromMachineName,@PathVariable String socketId, @PathVariable String status)
-//    {
-//        return environmentService.updateStatusAPSTransferStatus(fromMachineName,socketId,status);
-//    }
 
 }
