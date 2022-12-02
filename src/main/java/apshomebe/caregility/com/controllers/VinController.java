@@ -3,6 +3,7 @@ package apshomebe.caregility.com.controllers;
 import java.util.List;
 import java.util.Map;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import apshomebe.caregility.com.payload.VinResponce;
 import apshomebe.caregility.com.service.VinService;
 
 @RestController
+@Hidden
 @RequestMapping("/api/v1")
 public class VinController {
 	private static final Logger logger = LoggerFactory.getLogger(VinController.class);
