@@ -31,62 +31,62 @@ import apshomebe.caregility.com.service.VinService;
 @Hidden
 @RequestMapping("/api/v1")
 public class VinController {
-	private static final Logger logger = LoggerFactory.getLogger(VinController.class);
+    private static final Logger logger = LoggerFactory.getLogger(VinController.class);
 
-	@Autowired
-	VinService vinService;
+    @Autowired
+    VinService vinService;
 
-	@PostMapping("/vin/create")
-	public ResponseEntity<?> createVin() {
-		logger.info("inside the Vincontroller's createVin() method");
-		Vin vin = vinService.createNewVin();
+    @PostMapping("/vin/create")
+    public ResponseEntity<?> createVin() {
+        logger.info("inside the Vincontroller's createVin() method");
+        Vin vin = vinService.createNewVin();
 
-		logger.info("exiting  from the  Vincontroller's createVin() method");
-		return ResponseEntity
-				.ok(new VinResponce(vin.getId(), vin.getVinNumber(), vin.getAuthMachine(), vin.isDeleted()));
-	}
+        logger.info("exiting  from the  Vincontroller's createVin() method");
+        return ResponseEntity
+                .ok(new VinResponce(vin.getId(), vin.getVinNumber(), vin.getAuthMachine(), vin.isDeleted()));
+    }
 
-	@PutMapping("/vin/{vinNumber}/map/machine/{machineName}")
-	public ResponseEntity<?> mapVin(@PathVariable String vinNumber, @PathVariable String machineName)
-			throws VinNotFoundException, MachineNotFoundException, MachineAlredyMappedException {
-		logger.info("inside the Vincontroller's mapVin() method");
-		Vin mapVindetails = vinService.mapVindetails(vinNumber, machineName);
-		logger.info("exiting  from the  Vincontroller's mapVin() method");
-		return ResponseEntity.ok(mapVindetails);
+    @PutMapping("/vin/{vinNumber}/map/machine/{machineName}")
+    public ResponseEntity<?> mapVin(@PathVariable String vinNumber, @PathVariable String machineName)
+            throws VinNotFoundException, MachineNotFoundException, MachineAlredyMappedException {
+        logger.info("inside the Vincontroller's mapVin() method");
+        Vin mapVindetails = vinService.mapVindetails(vinNumber, machineName);
+        logger.info("exiting  from the  Vincontroller's mapVin() method");
+        return ResponseEntity.ok(mapVindetails);
 
-	}
+    }
 
-	@GetMapping("/vin/{machineName}")
-	public ResponseEntity<VinResponce> getVin(@PathVariable String machineName) throws MachineNotFoundException {
-		return ResponseEntity.ok(vinService.getVinAgainstMachineName(machineName));
-	}
+    @GetMapping("/vin/{machineName}")
+    public ResponseEntity<VinResponce> getVin(@PathVariable String machineName) throws MachineNotFoundException {
+        return ResponseEntity.ok(vinService.getVinAgainstMachineName(machineName));
+    }
 
-	@DeleteMapping("/vin/{vinNumber}")
-	public void deleteVin(@PathVariable String vinNumber) throws VinNotFoundException {
-		vinService.deleteVin(vinNumber);
-	}
+    @DeleteMapping("/vin/{vinNumber}")
+    public void deleteVin(@PathVariable String vinNumber) throws VinNotFoundException {
+        vinService.deleteVin(vinNumber);
+    }
 
-	@GetMapping("/vin/{vinNumber}/details")
-	public ResponseEntity<List<VinResponce>> getVinDetails(@PathVariable String vinNumber) {
-		List<VinResponce> vinDetails = vinService.getVinDetails(vinNumber);
-		return ResponseEntity.ok(vinDetails);
-	}
+    @GetMapping("/vin/{vinNumber}/details")
+    public ResponseEntity<List<VinResponce>> getVinDetails(@PathVariable String vinNumber) {
+        List<VinResponce> vinDetails = vinService.getVinDetails(vinNumber);
+        return ResponseEntity.ok(vinDetails);
+    }
 
-	@GetMapping("/vin/details/export")
-	public ResponseEntity<Map<String, Object>> exportVinDetails(@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "3") int size) {
+    @GetMapping("/vin/details/export")
+    public ResponseEntity<Map<String, Object>> exportVinDetails(@RequestParam(defaultValue = "0") int page,
+                                                                @RequestParam(defaultValue = "3") int size) {
 
-		Pageable paging = PageRequest.of(page, size);
-		Map<String, Object> vinExportDetails = vinService.getVinExportDetails(paging);
+        Pageable paging = PageRequest.of(page, size);
+        Map<String, Object> vinExportDetails = vinService.getVinExportDetails(paging);
 
-		return ResponseEntity.ok(vinExportDetails);
+        return ResponseEntity.ok(vinExportDetails);
 
-	}
+    }
 
-	@PutMapping("/vin/{vinNumber}/refresh")
-	public ResponseEntity<?> clearMapping(@PathVariable String vinNumber) throws VinNotFoundException {
-		vinService.clearMapping(vinNumber);
-		return ResponseEntity.ok(new MessageResponse("mappings cleard for given vin"));
-	}
+    @PutMapping("/vin/{vinNumber}/refresh")
+    public ResponseEntity<?> clearMapping(@PathVariable String vinNumber) throws VinNotFoundException {
+        vinService.clearMapping(vinNumber);
+        return ResponseEntity.ok(new MessageResponse("mappings cleard for given vin"));
+    }
 
 }

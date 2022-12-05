@@ -36,6 +36,7 @@ public class APSSynchServerRESTController {
 	@Autowired
 	EnvironmentService environmentService;
 
+
 	@GetMapping("/aboutMe")
 	public ResponseEntity<?> rootPath() {
 		return new ResponseEntity<>("APS Synch WebSocket Server", HttpStatus.OK);
