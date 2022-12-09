@@ -1,8 +1,6 @@
 package apshomebe.caregility.com.service;
 
-import apshomebe.caregility.com.payload.ApsTransferRequest;
-import apshomebe.caregility.com.payload.EnvironmentResList;
-import apshomebe.caregility.com.payload.ListResponse;
+import apshomebe.caregility.com.payload.*;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -20,5 +18,10 @@ public interface EnvironmentService {
 
     List<ListResponse> getEndpointsList(String envId, String unitId) throws SQLException;
 
-    String transfer(ApsTransferRequest transfer);
+    ApsTransferResponse transfer(ApsTransferRequest transfer);
+    ApsTransferResponse transferCopy(ApsTransferRequest transfer);
+
+
+    ApsTransferResponse bulkTransfer(ApsBulkTransferRequest bulkTransferRequest);
+
 }

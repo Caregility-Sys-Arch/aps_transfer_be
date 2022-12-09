@@ -11,11 +11,15 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import apshomebe.caregility.com.service.ApsTransferEnvironmentServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CORSFilter implements Filter {
+	private static final Logger logger = LoggerFactory.getLogger(CORSFilter.class);
 	@Value("${apssynch.server.cors.allow}")
 	List<String> APSSYNCH_SERVER_CORS_ALLOW;
 
@@ -24,7 +28,7 @@ public class CORSFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
 		String origin = request.getHeader("Origin");
-		System.out.println("Origin:" + origin);
+		logger.debug("Origin:{}" , origin);
 		response.setHeader("Access-Control-Allow-Origin",
 				origin != null && APSSYNCH_SERVER_CORS_ALLOW.contains(origin) ? origin : "*");
 		// Access-Control-Allow-Methods

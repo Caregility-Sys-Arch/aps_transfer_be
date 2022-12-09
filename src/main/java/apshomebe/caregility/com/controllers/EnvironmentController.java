@@ -1,14 +1,9 @@
 package apshomebe.caregility.com.controllers;
 
-import apshomebe.caregility.com.exception.NoDataFoundException;
-import apshomebe.caregility.com.models.Environment;
-import apshomebe.caregility.com.models.EnvironmentMapping;
-import apshomebe.caregility.com.payload.ApsTransferRequest;
-import apshomebe.caregility.com.payload.ChannelRequest;
-import apshomebe.caregility.com.payload.EnvironmentResList;
-import apshomebe.caregility.com.payload.ListResponse;
+import apshomebe.caregility.com.models.ApsTransferCopy;
+import apshomebe.caregility.com.payload.*;
+import apshomebe.caregility.com.repository.ApsTransferCopyRepository;
 import apshomebe.caregility.com.service.EnvironmentService;
-import apshomebe.caregility.com.service.EnvironmentServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +20,9 @@ public class EnvironmentController {
     @Autowired
 
     EnvironmentService environmentService;
+
+    @Autowired
+    ApsTransferCopyRepository apsTransferCopyRepository;
 
 
     @GetMapping("/environment")
@@ -91,9 +89,22 @@ public class EnvironmentController {
 
 
     @PostMapping("/aps/transfer")
-    public String transferAps(@RequestBody ApsTransferRequest transferReq) {
+    public ResponseEntity<?> transferAps(@RequestBody ApsTransferRequest transferReq) {
         logger.info("inside the getCustomersList() of controller layer ");
-        return environmentService.transfer(transferReq);
+        return ResponseEntity.ok(environmentService.transferCopy(transferReq));
+       //return ResponseEntity.ok(environmentService.transfer(transferReq));
     }
+
+
+    @PostMapping("/aps/bulk/transfer")
+    public ResponseEntity<?> transferBulkAps(@RequestBody ApsBulkTransferRequest bulkTransferReq) {
+        logger.info("inside the getCustomersList() of controller layer ");
+        environmentService.bulkTransfer(bulkTransferReq);
+        return ResponseEntity.ok(null);
+    }
+
+
+
+
 
 }

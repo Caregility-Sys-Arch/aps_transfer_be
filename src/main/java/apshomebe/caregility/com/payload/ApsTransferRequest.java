@@ -12,8 +12,10 @@ public class ApsTransferRequest {
 
 	private String process_request_id;
 	private String process_request_type;
+
+	private String transactionId;
 	private String command;
-	private ApsTransferParam params;
+	private ApsTransferParamRequest params;
 
 	public ApsTransferRequest(String command) {
 		super();

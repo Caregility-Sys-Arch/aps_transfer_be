@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface EnvironmentRepository extends MongoRepository<Environment,String> {
-    @Query("select e.id, e.name from Environment e")
-    List<EnvironmentResList> findAllByIdAndName();
+    @Query("select e.id, e.name,e.environmentIpAddress from Environment e")
+    List<EnvironmentResList> findAllByIdAndNameAndEnvironmentIp();
 }
 

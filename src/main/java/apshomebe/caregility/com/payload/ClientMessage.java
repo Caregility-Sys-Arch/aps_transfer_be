@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 
 public class ClientMessage {
+	private String processRequestId;
+	private String transactionId;
 	private ClientCommand command;
 	private String content;
 

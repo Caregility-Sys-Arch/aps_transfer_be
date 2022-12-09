@@ -13,9 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
+import apshomebe.caregility.com.payload.ApsBulkTransferRequest;
+import apshomebe.caregility.com.payload.ApsTransferRequest;
 import apshomebe.caregility.com.service.EnvironmentService;
 import apshomebe.caregility.com.websocket.config.ActiveSessionIdAndAPSMachineNameMapComponent;
 import apshomebe.caregility.com.websocket.service.ClientMessageTrackerImpl;
@@ -25,7 +24,7 @@ import apshomebe.caregility.com.websocket.service.SendCommandToAPSService;
 @RestController
 @RequestMapping("/api/v1")
 public class APSSynchServerRESTController {
-	private static final Logger logger = LoggerFactory.getLogger(ClientMessageTrackerImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(APSSynchServerRESTController.class);
 	@Autowired
 	private SimpMessagingTemplate simpMessagingTemplate;
 
@@ -36,7 +35,6 @@ public class APSSynchServerRESTController {
 	@Autowired
 	EnvironmentService environmentService;
 
-
 	@GetMapping("/aboutMe")
 	public ResponseEntity<?> rootPath() {
 		return new ResponseEntity<>("APS Synch WebSocket Server", HttpStatus.OK);
@@ -44,7 +42,7 @@ public class APSSynchServerRESTController {
 
 	@PostMapping("/sendMessageToAll")
 	public ResponseEntity<?> sendMessage(@RequestBody String serverMessage) {
-		System.out.println("Sending Message to Clients..");
+		logger.debug("Sending Message to Clients..");
 
 		this.simpMessagingTemplate.convertAndSend("/message", serverMessage);
 		return new ResponseEntity<>("Message published to All Devices", HttpStatus.OK);
@@ -54,26 +52,33 @@ public class APSSynchServerRESTController {
 	public ResponseEntity<?> sendMessageToSepecificUser(@RequestBody String jsonString) {
 		logger.info("Sending Message to Specific User..");
 		// SpecificSpecificSpecificsendCommandToAPSService.sendCommandToApsToTransfer();
-		String status = environmentService.transfer(null);
-		return new ResponseEntity<>(status, HttpStatus.OK);
+
+		return new ResponseEntity<>(environmentService.transfer(new ApsTransferRequest()), HttpStatus.OK);
 
 	}
 
-	@GetMapping("/listConnectedDeviceStatus")
-	public ResponseEntity<?> listConnectedDeviceStatus() {
+	@PostMapping("/sendBulkTransferCommandToAPS")
+	public ResponseEntity<?> sendBulkTransferCommandToAPS(@RequestBody ApsBulkTransferRequest apsBulkTransferRequest) {
+		logger.info("Transfering Bulk Transfer..");
+		// SpecificSpecificSpecificsendCommandToAPSService.sendCommandToApsToTransfer();
 
-		ObjectMapper objectMapper = new ObjectMapper();
-		String jsonData = "";
-		try {
-			jsonData = objectMapper
-					.writeValueAsString(activeSessionIdAndAPSMachineNameMapComponent.getMachineNameAndSessionId());
+		return new ResponseEntity<>(environmentService.bulkTransfer(apsBulkTransferRequest), HttpStatus.OK);
 
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return new ResponseEntity<>(jsonData, HttpStatus.OK);
 	}
+
+	/*
+	 * @GetMapping("/listConnectedDeviceStatus") public ResponseEntity<?>
+	 * listConnectedDeviceStatus() {
+	 * 
+	 * ObjectMapper objectMapper = new ObjectMapper(); String jsonData = ""; try {
+	 * jsonData = objectMapper
+	 * .writeValueAsString(activeSessionIdAndAPSMachineNameMapComponent.
+	 * getMachineNameAndSessionId());
+	 * 
+	 * } catch (JsonProcessingException e) { // TODO Auto-generated catch block
+	 * e.printStackTrace(); }
+	 * 
+	 * return new ResponseEntity<>(jsonData, HttpStatus.OK); }
+	 */
 
 }

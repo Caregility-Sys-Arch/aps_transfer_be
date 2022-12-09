@@ -18,6 +18,7 @@ public class WebSocketConnectionListener {
 	@EventListener
 	private void handleSessionConnected(SessionConnectEvent event) {
 		logger.info("Session Connected:");
+		logger.debug("Connection Source:{}" ,event.getSource());
 		SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
 		logger.info("APS_MACHINE_NAME:" + headers.getNativeHeader("APS_MACHINE_NAME"));
 		logger.info("Session Id:" + headers.getSessionId());
@@ -33,18 +34,23 @@ public class WebSocketConnectionListener {
 		*/
 		// @formatter:on
 
-		activeSessionIdAndAPSMachineNameMapComponent.addSessionBySessionIdAndMachineName(headers.getSessionId(),
-				headers.getNativeHeader("APS_MACHINE_NAME").get(0));
+		activeSessionIdAndAPSMachineNameMapComponent.addSessionBySessionIdAndMachineName(
+				headers.getNativeHeader("APS_MACHINE_NAME").get(0), headers.getNativeHeader("APS_IP_ADDRESS").get(0),
+				headers.getSessionId());
 		logger.info("APS_MACHINE_NAME:" + headers.getNativeHeader("APS_MACHINE_NAME"));
 
 	}
 
 	@EventListener
 	private void handleSessionDisconnect(SessionDisconnectEvent event) {
+		logger.debug("Disconnect Source:{}" , event.getSource());
+		logger.debug("Reason:{}" , event.getCloseStatus());
+
 		logger.info("Session Disconnected");
 		SimpMessageHeaderAccessor headers = SimpMessageHeaderAccessor.wrap(event.getMessage());
 		logger.info("Session Id:" + headers.getSessionId());
-		activeSessionIdAndAPSMachineNameMapComponent.removeSessionBySessionIdAndMachineName(headers.getSessionId());
+		activeSessionIdAndAPSMachineNameMapComponent.removeSessionBySessionIdAndMachineName(headers.getSessionId(),
+				event.getCloseStatus().getCode());
 
 	}
 }

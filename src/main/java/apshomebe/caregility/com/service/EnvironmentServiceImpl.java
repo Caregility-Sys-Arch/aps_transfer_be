@@ -1,16 +1,15 @@
 package apshomebe.caregility.com.service;
 
 import apshomebe.caregility.com.exception.NoDataFoundException;
-import apshomebe.caregility.com.models.ApsTransfer;
-import apshomebe.caregility.com.models.Environment;
-import apshomebe.caregility.com.models.EnvironmentMapping;
+import apshomebe.caregility.com.models.*;
 import apshomebe.caregility.com.payload.*;
-import apshomebe.caregility.com.repository.ApsTransferRepository;
-import apshomebe.caregility.com.repository.EnvironmentMappingRepository;
-import apshomebe.caregility.com.repository.EnvironmentRepository;
+import apshomebe.caregility.com.repository.*;
 import apshomebe.caregility.com.websocket.config.ActiveSessionIdAndAPSMachineNameMapComponent;
+import apshomebe.caregility.com.websocket.model.ApsWsConnectionStatus;
+import apshomebe.caregility.com.websocket.service.ApsWsConnectionStatusService;
 import apshomebe.caregility.com.websocket.service.SendCommandToAPSServiceImpl;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +38,23 @@ public class EnvironmentServiceImpl implements EnvironmentService {
     @Autowired
     ActiveSessionIdAndAPSMachineNameMapComponent activeSessionIdAPSMachineNameMapComponent;
 
+    @Autowired
+    ApsWsConnectionStatusService apsWsConnectionStatusService;
+
+
+    @Autowired
+    ApsTransferCopyRepository apsTransferCopyRepository;
+
+    @Autowired
+    ApsBulkTransferRepository bulkTransferRepository;
+
+
+
 
     @Transactional
     @Override
     public List<EnvironmentResList> getAllEnvironment() {
-        return environmentRepository.findAllByIdAndName();
+        return environmentRepository.findAllByIdAndNameAndEnvironmentIp();
     }
 
     @Transactional
@@ -131,7 +142,7 @@ public class EnvironmentServiceImpl implements EnvironmentService {
             final String database = "jdbc:mysql://";
             // connect way #1
             String url = database + environment.getDatabaseIp() + ":" + environment.getDatabasePort() + "/" + environment.getDatabaseName();
-            boolean envFlag = "env1".equalsIgnoreCase(environment.getName()) ? true : false;
+            boolean envFlag = "production".equalsIgnoreCase(environment.getName()) ? true : false;
             if (envFlag) {
                 user = "root";
                 password = "root";
@@ -315,7 +326,7 @@ public class EnvironmentServiceImpl implements EnvironmentService {
 
     @Transactional
     @Override
-    public String transfer(ApsTransferRequest transfer) {
+    public ApsTransferResponse transfer(ApsTransferRequest transfer) {
         ApsTransfer apsTransfer = new ApsTransfer();
         apsTransfer.setProcessRequestId(transfer.getProcess_request_id());
         apsTransfer.setProcessRequestType(transfer.getProcess_request_type());
@@ -328,8 +339,10 @@ public class EnvironmentServiceImpl implements EnvironmentService {
         apsTransfer.setCreatedAt(new Date());
         //Getting SocketId/SessionIof the APS Device
         logger.info("from machine name " + transfer.getParams().getFrom_machine_name());
-        String socketId = activeSessionIdAPSMachineNameMapComponent.getSessionIdByAPSMachineName(transfer.getParams().getFrom_machine_name());
-        if (socketId == null || socketId.equals("")) {
+
+        String socketId = apsWsConnectionStatusService
+                .findApsMachineNameBySocketId(transfer.getParams().getFrom_machine_name());
+          if (socketId == null || socketId.equals("")) {
             logger.error("not getting the socket/session id ");
             // throw new RuntimeException("not getting the socket/session id ");
 
@@ -341,23 +354,103 @@ public class EnvironmentServiceImpl implements EnvironmentService {
         apsTransfer.setStatus("");
         apsTransferRepository.save(apsTransfer);
         //Todo make a Request for
-        ApsTransferParam apsTransferParamVO = new ApsTransferParam();
-        apsTransferParamVO.setFrom_ip_address("from_ip_address");
-        apsTransferParamVO.setTo_ip_address("to_ip_address");
-        apsTransferParamVO.setFrom_machine_name("from_machine_name");
-        apsTransferParamVO.setTo_machine_name("to_machine_name");
+//        ApsTransferParam apsTransferParamVO = new ApsTransferParam();
+//        apsTransferParamVO.setFrom_ip_address("from_ip_address");
+//        apsTransferParamVO.setTo_ip_address("to_ip_address");
+//        apsTransferParamVO.setFrom_machine_name("from_machine_name");
+//        apsTransferParamVO.setTo_machine_name("to_machine_name");
+//
+//
+//        ApsTransferRequest apsTransferDataVO = new ApsTransferRequest();
+//        apsTransferDataVO.setProcess_request_id("process_request_id");
+//        apsTransferDataVO.setProcess_request_type("process_request_type");
+//        apsTransferDataVO.setCommand(ServerCommand.transfer_aps.name());
 
-
-        ApsTransferRequest apsTransferDataVO = new ApsTransferRequest();
-        apsTransferDataVO.setProcess_request_id("process_request_id");
-        apsTransferDataVO.setProcess_request_type("process_request_type");
-        apsTransferDataVO.setCommand(ServerCommand.transfer_aps.name());
-
-
-        apsTransferDataVO.setParams(apsTransferParamVO);
+//
+//        apsTransferDataVO.setParams(apsTransferParamVO);
         sendCommandToAPSServiceImpl.sendCommandToApsToTransfer(transfer);
+        ApsTransferResponse response = new ApsTransferResponse();
+        response.setMessage("Aps Transfer Completed");
+        return response;
+    }
 
-        return "transfer completed";
+
+
+    @Transactional
+    @Override
+    public ApsTransferResponse transferCopy(ApsTransferRequest transfer) {
+        ApsTransfer apsTransfer = new ApsTransfer();
+        ApsTransferCopy transferCopy=new ApsTransferCopy();
+        //unique process_request_id
+        transfer.setProcess_request_id("APS_TRANSFER_" + new Date().toString().replaceAll(" ", "_"));
+
+        transferCopy.setProcessRequestId(transfer.getProcess_request_id());
+        transferCopy.setProcessRequestType(transfer.getProcess_request_type());
+
+        transferCopy.setCommand(transfer.getCommand());
+        transferCopy.setCreatedAt(new Date());
+
+        //Getting SocketId/SessionIof the APS Device
+        logger.info("from machine name " + transfer.getParams().getFrom_machine_name());
+
+        String socketId=   apsWsConnectionStatusService.
+                findSocketIdByApsMachineName(transfer.getParams().getFrom_machine_name()).getCurrent_socket_id();
+
+
+        if (socketId == null || socketId.equals("")) {
+            logger.error("not getting the socket/session id ");
+            // throw new RuntimeException("not getting the socket/session id ");
+
+        }
+        ApsTransferParam params=new ApsTransferParam(transfer.getParams().getFrom_ip_address(),transfer.getParams().getTo_ip_address(),transfer.getParams().getFrom_machine_name(),transfer
+                .getParams().getTo_machine_name(),socketId);
+
+
+
+   transferCopy.setParams(params);
+        apsTransferCopyRepository.save(transferCopy);
+        //Todo make a Request for
+//        ApsTransferParam apsTransferParamVO = new ApsTransferParam();
+//        apsTransferParamVO.setFrom_ip_address("from_ip_address");
+//        apsTransferParamVO.setTo_ip_address("to_ip_address");
+//        apsTransferParamVO.setFrom_machine_name("from_machine_name");
+//        apsTransferParamVO.setTo_machine_name("to_machine_name");
+//
+//
+//        ApsTransferRequest apsTransferDataVO = new ApsTransferRequest();
+//        apsTransferDataVO.setProcess_request_id("process_request_id");
+//        apsTransferDataVO.setProcess_request_type("process_request_type");
+//        apsTransferDataVO.setCommand(ServerCommand.transfer_aps.name());
+
+//
+//        apsTransferDataVO.setParams(apsTransferParamVO);
+        sendCommandToAPSServiceImpl.sendCommandToApsToTransfer(transfer);
+        ApsTransferResponse response = new ApsTransferResponse();
+        response.setMessage("Aps Transfer Completed");
+        return response;
+    }
+
+    @Override
+    @Transactional
+    public ApsTransferResponse bulkTransfer(ApsBulkTransferRequest apsBulkTransferRequest) {
+
+        // Setting ProcessRequest_Unique
+        // TODO: Need confirm for unique ness of Process Request
+        apsBulkTransferRequest.setProcess_request_id("BULK_TRANSFER_" + new Date().toString().replaceAll(" ", "_"));
+        //push data into the database
+
+        ApsBulkTransfer entity=new ApsBulkTransfer();
+        entity.setProcess_request_id(apsBulkTransferRequest.getProcess_request_id());
+        entity.setCommand(apsBulkTransferRequest.getCommand());
+        entity.setProcess_request_type(apsBulkTransferRequest.getProcess_request_type());
+        entity.setStatus("Transfer Initiated");
+        entity.setTransfer_list(apsBulkTransferRequest.getTransfer_list());
+        entity.setCreatedAt(new Date());
+
+        bulkTransferRepository.save(entity);
+        sendCommandToAPSServiceImpl.sendCommandToApsToTransfer(apsBulkTransferRequest);
+        return new ApsTransferResponse("Bulk Transfer Initiated");
+
     }
 
 
