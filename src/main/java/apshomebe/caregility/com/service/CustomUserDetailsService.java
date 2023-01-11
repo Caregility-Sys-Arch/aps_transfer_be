@@ -25,8 +25,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        log.info("inside loadbyusername");
-
         String arr[] = username.split("]");
         String userEmail = arr[0];
         String environmentUrl = arr[1];
@@ -37,7 +35,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         final String database = "jdbc:mysql://";
 
         Environment environment = environmentRepository.findByEnvironmentUrl(environmentUrl).get();
-        log.info("environment ="+environment);
         String url = database + environment.getDatabaseIp() + ":" + environment.getDatabasePort() + "/" + environment.getDatabaseName();
 
         String user = environment.getDatabaseUserName();
@@ -61,7 +58,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                     while (rs.next()) {
                         authDetails = authDetails.build(rs.getString("id"), rs.getString("email"), environmentUrl);
                     }
-                    log.info("returning from loadbyusername");
                     return authDetails;
 
                 }

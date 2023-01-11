@@ -103,8 +103,7 @@ public class EnvironmentController {
     @PostMapping("/aps/bulk/transfer")
     public ResponseEntity<?> transferBulkAps(@RequestBody ApsBulkTransferRequest bulkTransferReq) {
         logger.info("inside the getCustomersList() of controller layer ");
-        environmentService.bulkTransfer(bulkTransferReq);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(environmentService.bulkTransfer(bulkTransferReq));
     }
 
     @GetMapping("/hii")

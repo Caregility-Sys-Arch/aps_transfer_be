@@ -80,7 +80,7 @@ public class SendCommandToAPSServiceImpl implements SendCommandToAPSService {
 				logger.debug("Total Records Found:{}" ,apsTransferParamList.size());
 				for (ApsTransferParamRequest apsTransferParam : apsTransferParamList) {
 					// Todo make a Request for
-					logger.debug("Processing Record:{}" , ++count);
+					logger.info("Processing Record:{}" , ++count);
 					ApsTransferParamRequest apsTransferParamVO = new ApsTransferParamRequest();
 					apsTransferParamVO.setFrom_ip_address(apsTransferParam.getFrom_ip_address());
 					apsTransferParamVO.setTo_ip_address(apsTransferParam.getTo_ip_address());
@@ -97,6 +97,12 @@ public class SendCommandToAPSServiceImpl implements SendCommandToAPSService {
 							apsBulkTransferRequest, EApsTransferTransactionName.PREPARE_DATA);
 
 					apsTransferTransactionsForAps.setApsTransferRequest(apsTransferDataVO);
+					//Todo For vishal's delete this if not needed
+					apsTransferTransactionsForAps.setApsFromIpAddress(apsTransferParam.getFrom_ip_address());
+					apsTransferTransactionsForAps.setApsToIpAddress(apsTransferParam.getTo_ip_address());
+					apsTransferTransactionsForAps.setApsFromMachineName(apsTransferParam.getFrom_machine_name());
+					apsTransferTransactionsForAps.setApsToMachineName(apsTransferParam.getTo_machine_name());
+					//Todo For vishal's delete this if not needed
 					apsTransferTransactionsForAps = apsTransferTransactionsRepository
 							.save(apsTransferTransactionsForAps);
 					// Setting UniqueTransaction Id
@@ -138,6 +144,12 @@ public class SendCommandToAPSServiceImpl implements SendCommandToAPSService {
 		apsTransferTransactions.setProcess_request_id(apsTransferRequest.getProcess_request_id());
 		apsTransferTransactions.setComment(apsTransferRequest.getCommand());
 		apsTransferTransactions.setTransactionName(apsTransferTransactionName);
+		//Todo delete if  not needed
+		apsTransferTransactions.setApsFromMachineName(apsTransferRequest.getParams().getFrom_machine_name());
+		apsTransferTransactions.setApsToMachineName(apsTransferRequest.getParams().getTo_machine_name());
+		apsTransferTransactions.setApsFromIpAddress(apsTransferRequest.getParams().getFrom_ip_address());
+		apsTransferTransactions.setApsToIpAddress(apsTransferRequest.getParams().getTo_ip_address());
+		//Todo delete if  not needed
 		apsTransferTransactions.setCreatedAt(new Date());
 		apsTransferTransactions.setUpdatedAt(new Date());
 		return apsTransferTransactions;
@@ -149,6 +161,13 @@ public class SendCommandToAPSServiceImpl implements SendCommandToAPSService {
 		apsTransferTransactions.setProcess_request_id(apsBulkTransferRequest.getProcess_request_id());
 		apsTransferTransactions.setComment(apsBulkTransferRequest.getCommand());
 		apsTransferTransactions.setTransactionName(apsTransferTransactionName);
+		//Todo delete if  not needed
+//		apsTransferTransactions.setApsFromMachineName(apsBulkTransferRequest.get);
+//		apsTransferTransactions.setApsToMachineName(apsTransferRequest.getParams().getTo_machine_name());
+//		apsTransferTransactions.setApsFromIpAddress(apsTransferRequest.getParams().getFrom_ip_address());
+//		apsTransferTransactions.setApsToIpAddress(apsTransferRequest.getParams().getTo_ip_address());
+//
+// Todo delete if  not needed
 		apsTransferTransactions.setCreatedAt(new Date());
 		apsTransferTransactions.setUpdatedAt(new Date());
 

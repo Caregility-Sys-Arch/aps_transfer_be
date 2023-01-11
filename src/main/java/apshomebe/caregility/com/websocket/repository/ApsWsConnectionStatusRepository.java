@@ -1,5 +1,6 @@
 package apshomebe.caregility.com.websocket.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -18,5 +19,8 @@ public interface ApsWsConnectionStatusRepository extends MongoRepository<ApsWsCo
 
 	@Query("{current_machine_name :?0}")
 	public Optional<ApsWsConnectionStatus> findByApsMachineName(String apsMachineName);
+
+	public List<ApsWsConnectionStatus> findAllByStatus(String status);
+
 
 }

@@ -27,11 +27,10 @@ public class AuthController {
 
 
     @PostMapping("/verify")
-    public /*ResponseEntity<JwtResponse>*/  JwtResponse verifyToken(@Valid @RequestBody VerifyTokenRequest verifyTokenRequest) throws SQLException {
+    public   JwtResponse verifyToken(@Valid @RequestBody VerifyTokenRequest verifyTokenRequest) throws SQLException {
         log.info("inside the verify controller");
         JwtResponse response=authService.verifyToken(verifyTokenRequest);
-        log.warn("Return back from cntoller");
-//        return ResponseEntity.ok(response);
+        log.warn("Return back from controller");
         return response;
     }
 

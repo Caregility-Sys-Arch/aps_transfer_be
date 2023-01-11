@@ -47,12 +47,14 @@ public class ClientMessageTrackerImpl implements ClientMessageTracker {
 
 	@Override
 	public void sendMessageToClientToInitiateTransfer(ApsTransferTransactions apsTransferTransactions) {
+		logger.info("inside the transations one bye one ");
 		logger.debug("Sending device Ready Validation command....TODO: Need to implement");
 		// Get all Records with process_request_id and initiate Transfer for each device
 
 		List<ApsTransferTransactions> apsTransferTransactionsFromDb = apsTransferTransactionsRepository
 				.findByProcessRequestIdAndTransactionStatus(apsTransferTransactions.getProcess_request_id(),
 						EApsTransferTransactionName.PREPARE_DATA, null);
+		logger.info("list is "+apsTransferTransactionsFromDb);
 		for (ApsTransferTransactions apsTransferTransactions2 : apsTransferTransactionsFromDb) {
 			logger.debug("Checking Status for Bulk Transfer:{}"
 					, apsTransferTransactions2.getApsTransferRequest().getParams().getFrom_machine_name());
@@ -66,11 +68,13 @@ public class ClientMessageTrackerImpl implements ClientMessageTracker {
 						ServerCommand.are_ready_config_update.name());
 				apsTransferRequest.setProcess_request_id(apsTransferTransactions2.getProcess_request_id());
 				apsTransferRequest.setTransactionId(apsTransferTransactions2.getTransactionId());
+				apsTransferRequest.setParams(apsTransferTransactions2.getApsTransferRequest().getParams());
 				apsTransferTransactions3.setTransactionName(EApsTransferTransactionName.CHECKING_DEVICE_READY);
 				String targetApsMachineName = apsTransferTransactions2.getApsTransferRequest().getParams()
 						.getFrom_machine_name();
 				if (apsWsConnectionStatusService.findSocketIdByApsMachineName(targetApsMachineName) != null) {
 
+					logger.info("/queue/notification  apsTransferRequest"+apsTransferRequest);
 					this.simpMessagingTemplate.convertAndSendToUser(
 							apsTransferTransactions2.getApsTransferRequest().getParams().getFrom_machine_name(),
 							"/queue/notification", apsTransferRequest, createHeaders(null));
@@ -80,7 +84,7 @@ public class ClientMessageTrackerImpl implements ClientMessageTracker {
 					// Mark in Trx Table for Device Not Ready
 					apsTransferTransactions3.setTransactionStatus(EApsTransferTransactionStatus.DEVICE_INACTIVE);
 				}
-
+                  logger.info("apsTransferTransactions3 "+apsTransferTransactions3);
 				apsTransferTransactionsRepository.save(apsTransferTransactions3);
 			}
 
@@ -108,17 +112,20 @@ public class ClientMessageTrackerImpl implements ClientMessageTracker {
 		logger.info("Received from Client Acknowledgement. Initiate Transfer Configuration");
 		switch (clientMessage.getCommand()) {
 		case i_am_ready_config_update:
+			logger.info("inside the i_am_ready_config_update");
+			logger.info("client messge apshome="+clientMessage);
 			String apsMachineName = apsWsConnectionStatusService.findApsMachineNameBySocketId(sessionId);
 			logger.info("APS Machine Name ID Got:" + apsMachineName);
 			logger.info("Client Sent Transaction Id:" + clientMessage.getTransactionId() + ":");
 			ApsTransferTransactions apsTransferTransactionsDB = getApsTransferTransactionsModel(clientMessage,
 					EApsTransferTransactionName.DEVICE_READY_CONFIRMED);
+			logger.info("vishal apsTransferTransactionsDB++ ="+apsTransferTransactionsDB);
 			apsTransferTransactionsRepository.save(apsTransferTransactionsDB);
 			if (apsMachineName != null) {
 				// Get Transfer Payload Details and Send for the Machine Name
 
-				// ApsTransferRequest apsTransferRequest =
-				// environmentService.getAPSTransferDetails(apsMachineName,sessionId);
+//				 ApsTransferRequest apsTransferRequest =
+//				 environmentService.getAPSTransferDetails(apsMachineName,sessionId);
 				logger.info("Checking Transaction details...");
 				ApsTransferTransactions apsTransferTransactions = apsTransferTransactionsRepository
 						.findTransferRequestDataByTransactionId(clientMessage.getTransactionId(),
@@ -137,6 +144,7 @@ public class ClientMessageTrackerImpl implements ClientMessageTracker {
 							// Marking in transaction as Processed
 							apsTransferTransactions.setTransactionStatus(EApsTransferTransactionStatus.PROCESSED);
 							apsTransferTransactions.setUpdatedAt(new Date());
+							logger.info("session id is  for update I am ready config update ="+sessionId);
 							apsTransferTransactionsRepository.save(apsTransferTransactions);
 							this.simpMessagingTemplate.convertAndSendToUser(apsMachineName, "/queue/notification",
 									apsTransferRequest, createHeaders(null));
@@ -157,29 +165,59 @@ public class ClientMessageTrackerImpl implements ClientMessageTracker {
 			}
 			break;
 		case config_update_started:
+			logger.info("inside the  config update started case");
 			apsMachineName = apsWsConnectionStatusService.findApsMachineNameBySocketId(sessionId);
+			apsTransferTransactionsDB = getApsTransferTransactionsModel(clientMessage,
+					EApsTransferTransactionName.CONFIG_UPDATE_STARTED);
+			logger.info("vishal apsTransferTransactionsDB++ config_update_started ="+apsTransferTransactionsDB);
+			apsTransferTransactionsRepository.save(apsTransferTransactionsDB);
 			logger.info("APS Machine Name ID Got:{}", apsMachineName);
+
 			if (apsMachineName != null) {
 				// Record in Transaction Info Table
-				apsTransferTransactionsDB = getApsTransferTransactionsModel(clientMessage,
-						EApsTransferTransactionName.CONFIG_UPDATE_STARTED);
-				apsTransferTransactionsRepository.save(apsTransferTransactionsDB);
+//				apsTransferTransactionsDB = getApsTransferTransactionsModel(clientMessage,
+//						EApsTransferTransactionName.CONFIG_UPDATE_STARTED);
+				ApsTransferTransactions apsTransferTransactions = apsTransferTransactionsRepository
+						.findTransferRequestDataByTransactionId(clientMessage.getTransactionId(),
+								EApsTransferTransactionName.PREPARE_DATA, null);
+				logger.info("APS Transaction Data:{} ", apsTransferTransactions);
 
-				boolean statusUpdateFlag = environmentService.updateStatusAPSTransferStatus(apsMachineName, sessionId,
-						"Config update started");
+				if (apsTransferTransactions != null) {
+					ApsTransferRequest apsTransferRequest = apsTransferTransactions.getApsTransferRequest();
 
-				if (statusUpdateFlag) {
+					logger.info("APS trasnfer request {}", apsTransferRequest);
+					if (apsTransferRequest != null) {
+						ObjectMapper objectMapper = new ObjectMapper();
+						try {
+							String jsonString = objectMapper.writeValueAsString(apsTransferRequest);
+							apsTransferTransactions.setTransactionStatus(EApsTransferTransactionStatus.PROCESSED);
+							apsTransferTransactions.setUpdatedAt(new Date());
+							logger.info("session id is  for update started="+sessionId);
+							apsTransferTransactionsRepository.save(apsTransferTransactions);
+							//apsTransferTransactionsRepository.save(apsTransferTransactionsDB);
 
-					logger.info("Info Updated successfully for : Machine {} - Session Id:{} ", apsMachineName,
-							sessionId);
-				} else {
-					logger.info("Info Updated failed for : Machine {} - Session Id:{} ", apsMachineName, sessionId);
 
+							boolean statusUpdateFlag = environmentService.updateStatusAPSTransferStatus(apsMachineName, sessionId,
+									"Config update started");
+
+							if (statusUpdateFlag) {
+
+								logger.info("Info Updated successfully for : Machine {} - Session Id:{} ", apsMachineName,
+										sessionId);
+							} else {
+								logger.info("Info Updated failed for : Machine {} - Session Id:{} ", apsMachineName, sessionId);
+
+							}
+						} catch (JsonProcessingException e) {
+							throw new RuntimeException(e);
+						}
+					}
 				}
 
-			}
+					}
 			break;
 		case config_update_failed:
+			logger.info("inside the  config update failed case");
 			apsMachineName = apsWsConnectionStatusService.findApsMachineNameBySocketId(sessionId);
 			logger.info("APS Machine Name ID Got:{}" , apsMachineName);
 			// Record in Transaction Info Table
@@ -203,8 +241,13 @@ public class ClientMessageTrackerImpl implements ClientMessageTracker {
 			}
 			break;
 		case config_update_success:
+			logger.info("inside the  config update success case");
 			apsMachineName = apsWsConnectionStatusService.findApsMachineNameBySocketId(sessionId);
 			logger.info("APS Machine Name ID Got:{}" ,apsMachineName);
+			logger.info("inside the config update success");
+			logger.info("client message for config update success");
+			logger.info("++"+clientMessage);
+			logger.info("session id is  for update success="+sessionId);
 			// Record in Transaction Info Table
 			apsTransferTransactionsDB = getApsTransferTransactionsModel(clientMessage,
 					EApsTransferTransactionName.CONFIG_UPDATE_SUCCESS);
@@ -236,6 +279,8 @@ public class ClientMessageTrackerImpl implements ClientMessageTracker {
 		ApsTransferTransactions apsTransferTransactions = new ApsTransferTransactions();
 		apsTransferTransactions.setProcess_request_id(clientMessage.getProcessRequestId());
 		apsTransferTransactions.setTransactionId(clientMessage.getTransactionId());
+		apsTransferTransactions.setApsFromIpAddress(clientMessage.getApsFromIpAddress());
+		apsTransferTransactions.setApsToIpAddress(clientMessage.getApsToIpAddress());
 		apsTransferTransactions.setCreatedAt(new Date());
 		apsTransferTransactions.setTransactionName(apsTransferTransactionName);
 		return apsTransferTransactions;

@@ -85,7 +85,7 @@ public class ApsWsConnectionStatusServiceImpl implements ApsWsConnectionStatusSe
 
 	@Override
 	public List<ApsWsConnectionStatus> listAllWebSocketConnections() {
-		return apsWsConnectionStatusRepository.findAll();
+		return apsWsConnectionStatusRepository.findAllByStatus("WS_CONNECTED");
 
 	}
 

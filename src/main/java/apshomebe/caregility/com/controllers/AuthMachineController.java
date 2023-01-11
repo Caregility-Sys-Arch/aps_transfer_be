@@ -79,7 +79,7 @@ public class AuthMachineController {
 //				.collect(Collectors.toList());
 		//RefreshToken refreshToken = refreshTokenService.createRefreshToken(authDetails.getId());
 
-		return ResponseEntity.ok(new JwtAuthResponce(/*jwt*/"nc baschaschjxz chjbchjbckxkbjc xzghjcvhcb kashucbzc\sv", authDetails.getUsername(),
+		return ResponseEntity.ok(new JwtAuthResponce(/*jwt*/"nc baschaschjxz chjbchjbckxkbjc xzghjcvhcb kashucbzcv", authDetails.getUsername(),
 				authDetails.getMachineUriToDisplay(), /*refreshToken.getToken()*/"njasbfdasiufbdsfhds"));
 	}
 

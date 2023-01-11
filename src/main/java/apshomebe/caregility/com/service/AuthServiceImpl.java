@@ -40,7 +40,6 @@ public class AuthServiceImpl {
     JwtAuthUtils authDetails;
 
     public JwtResponse verifyToken(VerifyTokenRequest request) throws SQLException {
-        log.warning("inside the servie of the verify token ");
         String[] parts = request.getAccessToken().split("\\.");
         JSONObject header = new JSONObject(decode(parts[0]));
         JSONObject payload = new JSONObject(decode(parts[1]));
@@ -52,7 +51,6 @@ public class AuthServiceImpl {
         //check if the given environment is in database or not
         boolean envExists = isEnvironmentExists(request.getEnvironmentUrl());
 
-        log.info("environment exists"+envExists);
         // if the environment exists then go to the env database and check if user exists and generate  JWT token
         if (envExists) {
 
@@ -63,8 +61,6 @@ public class AuthServiceImpl {
             String jwt = authDetails.generateJwtToken(customUserAuthDetails);
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(customUserAuthDetails);
             JwtResponse response = new JwtResponse(jwt, refreshToken.getToken());
-           log.warning("returning responce ");
-           log.info("is ="+response);
             return response;
 
         } else {

@@ -24,11 +24,9 @@ public class CORSFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
 			throws IOException, ServletException {
-		logger.warn("inside the ganesh cors");
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) res;
 		String origin = request.getHeader("Origin");
-		logger.info("Origin:{}" , origin);
 		response.setHeader("Access-Control-Allow-Origin",
 				origin != null && APSSYNCH_SERVER_CORS_ALLOW.contains(origin) ? origin : "*");
 		// Access-Control-Allow-Methods
@@ -40,7 +38,6 @@ public class CORSFilter implements Filter {
 		// Access-Control-Allow-Headers
 		response.setHeader("Access-Control-Allow-Headers",
 				"Origin,Authorization, X-Requested-With, WWW-Authenticate,Content-Type, Accept, " + "X-CSRF-TOKEN");
-		logger.info("all done");
 
 
 		chain.doFilter(req, res);
